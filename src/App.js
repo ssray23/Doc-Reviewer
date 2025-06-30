@@ -347,11 +347,7 @@ function App() {
             setReviewStatuses(prev => ({ ...prev, summary: 'PASS' }));
             setCurrentStage('Review Complete');
 
-<<<<<<< HEAD
             const passed = summaryResult.toLowerCase().includes("approved");
-=======
-                        const passed = summaryResult.toLowerCase().includes("approved");
->>>>>>> ea6b91ed0abd774facd5554f6443512f6d5d4582
             if (passed) {
                 setCurrentStage('Document Passed Review. Storing...');
                 const reviewedDocsCollectionRef = collection(db, `artifacts/${appId}/public/data/reviewed_documents`);
@@ -652,7 +648,7 @@ function App() {
                                 </label>
                                 <select
                                     id="model-doc-type"
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-gray-700 bg-white"
+                                    className="w-full p-3 border border-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-gray-700 bg-white"
                                     value={newModelDocType}
                                     onChange={(e) => setNewModelDocType(e.target.value)}
                                 >
