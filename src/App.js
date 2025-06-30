@@ -319,9 +319,6 @@ function App() {
         setReviews({ security: '', integration: '', data: '', scalability: '', summary: '' });
         setReviewStatuses({ security: 'pending', integration: 'pending', data: 'pending', scalability: 'pending', summary: 'pending' });
 
-        let currentStructuredReviews = { security: { status: '', feedback: '' }, integration: { status: '', feedback: '' }, data: { status: '', feedback: '' }, scalability: { status: '', feedback: '' } };
-        let workflowFailed = false;
-
         try {
             const allModelDocs = modelDocuments;
 
@@ -332,27 +329,33 @@ function App() {
                 { id: 'scalability', specialization: 'Scalability' }
             ];
 
-            for (const stage of reviewStages) {
-                const reviewResult = await reviewerAgent(stage.id, stage.specialization, inputDocument, allModelDocs);
-                currentStructuredReviews = { ...currentStructuredReviews, [stage.id]: reviewResult };
-                setReviews(prev => ({ ...prev, [stage.id]: reviewResult.feedback }));
-                setReviewStatuses(prev => ({ ...prev, [stage.id]: reviewResult.status }));
+            // Run all reviewer agents in parallel
+            setCurrentStage('Kicking off all reviews at the same time...');
+            const reviewPromises = reviewStages.map(stage =>
+                reviewerAgent(stage.id, stage.specialization, inputDocument, allModelDocs)
+            );
 
-                if (reviewResult.status === 'FAIL') {
-                    workflowFailed = true;
-                    break;
-                }
-            }
+            const reviewResults = await Promise.all(reviewPromises);
 
-            if (workflowFailed) {
-                setCurrentStage(`${currentStage} Failed`);
-                setIsLoading(false);
-                return;
-            }
+            // Process results after all reviews are complete
+            const currentStructuredReviews = {};
+            const newReviews = {};
+            const newReviewStatuses = {};
 
+            reviewStages.forEach((stage, index) => {
+                const reviewResult = reviewResults[index];
+                currentStructuredReviews[stage.id] = reviewResult;
+                newReviews[stage.id] = reviewResult.feedback;
+                newReviewStatuses[stage.id] = reviewResult.status;
+            });
+
+            setReviews(prev => ({ ...prev, ...newReviews }));
+            setReviewStatuses(prev => ({ ...prev, ...newReviewStatuses }));
+
+            // Aggregator runs after all reviews are complete, regardless of individual PASS/FAIL
             const summaryResult = await aggregatorAgent(currentStructuredReviews, inputDocument);
             setReviews(prev => ({ ...prev, summary: summaryResult }));
-            setReviewStatuses(prev => ({ ...prev, summary: 'PASS' }));
+            setReviewStatuses(prev => ({ ...prev, summary: 'PASS' })); // Mark summary as complete
             setCurrentStage('Review Complete');
 
             const passed = (summaryResult.toLowerCase().includes('ready') || (summaryResult.toLowerCase().includes('approved') && !summaryResult.toLowerCase().includes('major revisions')));
