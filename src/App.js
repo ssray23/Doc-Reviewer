@@ -279,8 +279,8 @@ function App() {
 
         const prompt = `
         You are an expert in consolidating technical reviews.
-        Your task is to take the following individual reviews for a design document and provide a comprehensive, easy-to-follow summary.
-        The summary should be well-structured with clear headings, bullet points for key findings, and a final, unambiguous recommendation.
+        Your task is to take the following individual reviews for a design document and provide a comprehensive summary.
+        Identify common themes, highlight the most critical issues, note any conflicting feedback, and provide a final recommendation or verdict (e.g., "Ready for next stage", "Requires major revisions", "Rejected due to critical flaws").
 
         --- Original Design Document Snippet (for context) ---
         ${docContent.substring(0, 500)}...
@@ -290,42 +290,7 @@ function App() {
         ${reviewsText}
         --------------------------
 
-        Please structure your output using Markdown with the following sections:
-
-        ### Overall Recommendation
-        A clear, one-sentence verdict. Must be one of: "Approved", "Approved with minor revisions", "Requires major revisions", or "Rejected".
-
-        ### Critical Issues (if any)
-        Use a bulleted list to describe any show-stopping issues that led to a "Requires major revisions" or "Rejected" status. If there are none, state "None."
-
-        ### Suggested Improvements
-        Use a bulleted list for suggested improvements or minor revisions. If there are none, state "None."
-
-        ### Positive Feedback
-        Use a bulleted list to highlight what the reviewers liked about the document. If there is none, state "None."
-
-        ### Conflicting Feedback (if any)
-        Note any areas where reviewers provided contradictory feedback. If there is none, state "None."
-
-        Example:
-        \`\`\`
-        ### Overall Recommendation
-        Approved with minor revisions.
-
-        ### Critical Issues
-        - None.
-
-        ### Suggested Improvements
-        - The data model should be normalized to reduce redundancy.
-        - Add more detailed logging for the integration points.
-
-        ### Positive Feedback
-        - The security considerations are well-defined and thorough.
-        - The scalability plan is robust and well-thought-out.
-
-        ### Conflicting Feedback
-        - None.
-        \`\`\`
+        Provide the consolidated summary and final recommendation.
         `;
 
         try {
@@ -354,6 +319,9 @@ function App() {
         setReviews({ security: '', integration: '', data: '', scalability: '', summary: '' });
         setReviewStatuses({ security: 'pending', integration: 'pending', data: 'pending', scalability: 'pending', summary: 'pending' });
 
+        let currentStructuredReviews = { security: { status: '', feedback: '' }, integration: { status: '', feedback: '' }, data: { status: '', feedback: '' }, scalability: { status: '', feedback: '' } };
+        let workflowFailed = false;
+
         try {
             const allModelDocs = modelDocuments;
 
@@ -364,33 +332,27 @@ function App() {
                 { id: 'scalability', specialization: 'Scalability' }
             ];
 
-            // Run all reviewer agents in parallel
-            setCurrentStage('Kicking off all reviews at the same time...');
-            const reviewPromises = reviewStages.map(stage =>
-                reviewerAgent(stage.id, stage.specialization, inputDocument, allModelDocs)
-            );
+            for (const stage of reviewStages) {
+                const reviewResult = await reviewerAgent(stage.id, stage.specialization, inputDocument, allModelDocs);
+                currentStructuredReviews = { ...currentStructuredReviews, [stage.id]: reviewResult };
+                setReviews(prev => ({ ...prev, [stage.id]: reviewResult.feedback }));
+                setReviewStatuses(prev => ({ ...prev, [stage.id]: reviewResult.status }));
 
-            const reviewResults = await Promise.all(reviewPromises);
+                if (reviewResult.status === 'FAIL') {
+                    workflowFailed = true;
+                    break;
+                }
+            }
 
-            // Process results after all reviews are complete
-            const currentStructuredReviews = {};
-            const newReviews = {};
-            const newReviewStatuses = {};
+            if (workflowFailed) {
+                setCurrentStage(`${currentStage} Failed`);
+                setIsLoading(false);
+                return;
+            }
 
-            reviewStages.forEach((stage, index) => {
-                const reviewResult = reviewResults[index];
-                currentStructuredReviews[stage.id] = reviewResult;
-                newReviews[stage.id] = reviewResult.feedback;
-                newReviewStatuses[stage.id] = reviewResult.status;
-            });
-
-            setReviews(prev => ({ ...prev, ...newReviews }));
-            setReviewStatuses(prev => ({ ...prev, ...newReviewStatuses }));
-
-            // Aggregator runs after all reviews are complete, regardless of individual PASS/FAIL
             const summaryResult = await aggregatorAgent(currentStructuredReviews, inputDocument);
             setReviews(prev => ({ ...prev, summary: summaryResult }));
-            setReviewStatuses(prev => ({ ...prev, summary: 'PASS' })); // Mark summary as complete
+            setReviewStatuses(prev => ({ ...prev, summary: 'PASS' }));
             setCurrentStage('Review Complete');
 
             const passed = (summaryResult.toLowerCase().includes('ready') || (summaryResult.toLowerCase().includes('approved') && !summaryResult.toLowerCase().includes('major revisions')));
@@ -616,7 +578,7 @@ function App() {
                             <div
                                 key={specialty}
                                 className={`bg-white p-6 rounded-xl shadow-md border-2 border-gray-200 panel-glow
-                                ${currentStage.includes(specialty) ? 'active' : ''}
+                                ${isLoading && !reviews.summary ? 'active' : ''}
                                 ${reviewStatuses[specialty.toLowerCase()] === 'FAIL' ? 'failed' : ''}
                                 `}
                             >
@@ -641,7 +603,7 @@ function App() {
                             <span className="mr-3 text-green-600">✨</span>
                             Final Review Summary
                         </h3>
-                        <div className="min-h-[150px] max-h-[400px] overflow-y-auto text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-100 leading-relaxed">
+                        <div className="min-h-[150px] max-h-[400px] overflow-y-auto text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-100 leading-relaxed whitespace-pre-wrap">
                             {reviews.summary || 'Awaiting final summary...'}
                         </div>
                     </div>
