@@ -206,7 +206,7 @@ function App() {
     // --- Agent Definitions ---
 
     const reviewerAgent = useCallback(async (agentName, specialization, docContent, modelDocs) => {
-        setCurrentStage(`Reviewing: ${specialization}`);
+        // setCurrentStage(`Reviewing: ${specialization}`); // Removed to prevent UI flicker
         setMessage('');
 
         const relevantModelDocs = modelDocs.filter(doc => doc.type === specialization.toLowerCase() || doc.type === 'general');
@@ -355,7 +355,7 @@ function App() {
             setReviewStatuses(prev => ({ ...prev, summary: 'PASS' }));
             setCurrentStage('Review Complete');
 
-            const passed = (summaryResult.toLowerCase().includes('ready') || (summaryResult.toLowerCase().includes('approved') && !summaryResult.toLowerCase().includes('major revisions')));
+                        const passed = summaryResult.toLowerCase().includes("approved");
             if (passed) {
                 setCurrentStage('Document Passed Review. Storing...');
                 const reviewedDocsCollectionRef = collection(db, `artifacts/${appId}/public/data/reviewed_documents`);
