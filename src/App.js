@@ -279,8 +279,8 @@ function App() {
 
         const prompt = `
         You are an expert in consolidating technical reviews.
-        Your task is to take the following individual reviews for a design document and provide a comprehensive summary.
-        Identify common themes, highlight the most critical issues, note any conflicting feedback, and provide a final recommendation or verdict (e.g., "Ready for next stage", "Requires major revisions", "Rejected due to critical flaws").
+        Your task is to take the following individual reviews for a design document and provide a comprehensive, easy-to-follow summary.
+        The summary should be well-structured with clear headings, bullet points for key findings, and a final, unambiguous recommendation.
 
         --- Original Design Document Snippet (for context) ---
         ${docContent.substring(0, 500)}...
@@ -290,7 +290,42 @@ function App() {
         ${reviewsText}
         --------------------------
 
-        Provide the consolidated summary and final recommendation.
+        Please structure your output using Markdown with the following sections:
+
+        ### Overall Recommendation
+        A clear, one-sentence verdict. Must be one of: "Approved", "Approved with minor revisions", "Requires major revisions", or "Rejected".
+
+        ### Critical Issues (if any)
+        Use a bulleted list to describe any show-stopping issues that led to a "Requires major revisions" or "Rejected" status. If there are none, state "None."
+
+        ### Suggested Improvements
+        Use a bulleted list for suggested improvements or minor revisions. If there are none, state "None."
+
+        ### Positive Feedback
+        Use a bulleted list to highlight what the reviewers liked about the document. If there is none, state "None."
+
+        ### Conflicting Feedback (if any)
+        Note any areas where reviewers provided contradictory feedback. If there is none, state "None."
+
+        Example:
+        \`\`\`
+        ### Overall Recommendation
+        Approved with minor revisions.
+
+        ### Critical Issues
+        - None.
+
+        ### Suggested Improvements
+        - The data model should be normalized to reduce redundancy.
+        - Add more detailed logging for the integration points.
+
+        ### Positive Feedback
+        - The security considerations are well-defined and thorough.
+        - The scalability plan is robust and well-thought-out.
+
+        ### Conflicting Feedback
+        - None.
+        \`\`\`
         `;
 
         try {
