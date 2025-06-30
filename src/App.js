@@ -347,7 +347,11 @@ function App() {
             setReviewStatuses(prev => ({ ...prev, summary: 'PASS' }));
             setCurrentStage('Review Complete');
 
+<<<<<<< HEAD
             const passed = summaryResult.toLowerCase().includes("approved");
+=======
+                        const passed = summaryResult.toLowerCase().includes("approved");
+>>>>>>> ea6b91ed0abd774facd5554f6443512f6d5d4582
             if (passed) {
                 setCurrentStage('Document Passed Review. Storing...');
                 const reviewedDocsCollectionRef = collection(db, `artifacts/${appId}/public/data/reviewed_documents`);
