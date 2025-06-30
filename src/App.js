@@ -206,7 +206,7 @@ function App() {
     // --- Agent Definitions ---
 
     const reviewerAgent = useCallback(async (agentName, specialization, docContent, modelDocs) => {
-        setCurrentStage(`Reviewing: ${specialization}`);
+        // setCurrentStage(`Reviewing: ${specialization}`); // Removed to prevent UI flicker
         setMessage('');
 
         const relevantModelDocs = modelDocs.filter(doc => doc.type === specialization.toLowerCase() || doc.type === 'general');
@@ -320,7 +320,6 @@ function App() {
         setReviewStatuses({ security: 'pending', integration: 'pending', data: 'pending', scalability: 'pending', summary: 'pending' });
 
         let currentStructuredReviews = { security: { status: '', feedback: '' }, integration: { status: '', feedback: '' }, data: { status: '', feedback: '' }, scalability: { status: '', feedback: '' } };
-        let workflowFailed = false;
 
         try {
             const allModelDocs = modelDocuments;
@@ -333,29 +332,22 @@ function App() {
             ];
 
             for (const stage of reviewStages) {
+                setCurrentStage(`Reviewing: ${stage.specialization}`);
                 const reviewResult = await reviewerAgent(stage.id, stage.specialization, inputDocument, allModelDocs);
-                currentStructuredReviews = { ...currentStructuredReviews, [stage.id]: reviewResult };
+                
+                // Update state immediately after each review to show progress
+                currentStructuredReviews[stage.id] = reviewResult;
                 setReviews(prev => ({ ...prev, [stage.id]: reviewResult.feedback }));
                 setReviewStatuses(prev => ({ ...prev, [stage.id]: reviewResult.status }));
-
-                if (reviewResult.status === 'FAIL') {
-                    workflowFailed = true;
-                    break;
-                }
             }
 
-            if (workflowFailed) {
-                setCurrentStage(`${currentStage} Failed`);
-                setIsLoading(false);
-                return;
-            }
-
+            // Aggregator runs after all reviews are complete
             const summaryResult = await aggregatorAgent(currentStructuredReviews, inputDocument);
             setReviews(prev => ({ ...prev, summary: summaryResult }));
             setReviewStatuses(prev => ({ ...prev, summary: 'PASS' }));
             setCurrentStage('Review Complete');
 
-            const passed = (summaryResult.toLowerCase().includes('ready') || (summaryResult.toLowerCase().includes('approved') && !summaryResult.toLowerCase().includes('major revisions')));
+            const passed = summaryResult.toLowerCase().includes("approved");
             if (passed) {
                 setCurrentStage('Document Passed Review. Storing...');
                 const reviewedDocsCollectionRef = collection(db, `artifacts/${appId}/public/data/reviewed_documents`);
