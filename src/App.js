@@ -578,7 +578,7 @@ function App() {
                             <div
                                 key={specialty}
                                 className={`bg-white p-6 rounded-xl shadow-md border-2 border-gray-200 panel-glow
-                                ${currentStage.includes(specialty) ? 'active' : ''}
+                                ${isLoading && !reviews.summary ? 'active' : ''}
                                 ${reviewStatuses[specialty.toLowerCase()] === 'FAIL' ? 'failed' : ''}
                                 `}
                             >
@@ -603,7 +603,7 @@ function App() {
                             <span className="mr-3 text-green-600">✨</span>
                             Final Review Summary
                         </h3>
-                        <div className="min-h-[150px] max-h-[400px] overflow-y-auto text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-100 leading-relaxed">
+                        <div className="min-h-[150px] max-h-[400px] overflow-y-auto text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-100 leading-relaxed whitespace-pre-wrap">
                             {reviews.summary || 'Awaiting final summary...'}
                         </div>
                     </div>
