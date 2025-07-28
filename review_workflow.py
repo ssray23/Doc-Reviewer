@@ -51,14 +51,14 @@ def aggregator_node(state):
     supervisor_feedback = state.get('supervisor_feedback', '')
     reviews = state.get('reviews', {})
 
-    # Format the collected reviews
-    review_texts = [f"--- {name}'s Feedback ---\n{feedback}" for name, feedback in reviews.items()]
+    # Format the collected reviews without dashes for a cleaner prompt
+    review_texts = [f"Review from {name}:\n{feedback}" for name, feedback in reviews.items()]
     combined_reviews = "\n\n".join(review_texts)
 
     prompt = (
-        f"You are the aggregator. Please compile the final feedback, taking into account the supervisor's initial feedback and all subsequent reviews.\n\n"
-        f"--- Supervisor's Feedback ---\n{supervisor_feedback}\n\n"
-        f"--- Individual Reviews ---\n{combined_reviews}"
+        f"You are the aggregator. Please compile a single, final feedback report. Synthesize the key points from the supervisor's feedback and the individual reviews provided below. Do not simply list the feedback; create a cohesive summary.\n\n"
+        f"Supervisor's Feedback:\n{supervisor_feedback}\n\n"
+        f"Individual Reviews:\n{combined_reviews}"
     )
 
     response = model.invoke([HumanMessage(prompt)])
