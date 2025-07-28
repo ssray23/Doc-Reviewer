@@ -116,7 +116,7 @@ mysql-connector-python==9.2.0
 networkx==3.2.1
 numpy==1.26.4
 oauthlib==3.2.2
-onnxruntime==1.19.2
+onnxruntime
 openai==1.64.0
 opentelemetry-api==1.30.0
 opentelemetry-exporter-otlp-proto-common==1.30.0
