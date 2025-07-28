@@ -82,6 +82,51 @@ def format_feedback(text):
     # Bold lines starting with --- and the word "Feedback:"
     text = re.sub(r'^(---.*---)
 
+@app.route('/review', methods=['POST'])
+def review():
+    """Handles the form submission and displays the review results."""
+    document_text = ""
+    uploaded_file = request.files.get('document_file')
+    selected_reviewers = request.form.getlist('reviewers')
+
+    # --- Robust Input Processing ---
+    if uploaded_file and uploaded_file.filename:
+        extracted_text = extract_text_from_file(uploaded_file)
+        if extracted_text:
+            document_text = extracted_text
+        else:
+            return f"Error: Could not extract text from the uploaded file '{uploaded_file.filename}'. The file might be empty, corrupted, or an unsupported format.", 400
+    
+    if not document_text and request.form.get('document'):
+        document_text = request.form.get('document')
+
+    # --- Final Validation ---
+    if not document_text:
+        return "Please provide a document to review, either by uploading a file or pasting content.", 400
+    
+    if not selected_reviewers:
+        return "Please select at least one reviewer.", 400
+
+    inputs = {
+        "document": document_text,
+        "selected_reviewers": selected_reviewers,
+        "reviews": {}
+    }
+
+    supervisor_feedback, reviews, final_feedback = "", {}, ""
+    for event in review_app.stream(inputs):
+        if "supervisor" in event:
+            feedback = event["supervisor"].get("supervisor_feedback", "")
+            supervisor_feedback = format_feedback(feedback)
+        for key in selected_reviewers:
+            if key in event:
+                raw_reviews = event[key].get("reviews", {})
+                processed_reviews = {name: format_feedback(text) for name, text in raw_reviews.items()}
+                reviews.update(processed_reviews)
+        if "aggregator" in event:
+            feedback = event["aggregator"].get("final_feedback", "")
+            final_feedback = format_feedback(feedback)
+
     return render_template(
         'results.html',
         supervisor_feedback=supervisor_feedback,
