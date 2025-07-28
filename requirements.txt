@@ -30,7 +30,7 @@ docstring_parser==0.16
 docx==0.2.4
 durationpy==0.9
 exceptiongroup==1.2.2
-faiss-cpu==1.10.0
+
 fastapi==0.115.11
 filelock==3.17.0
 filetype==1.2.0
