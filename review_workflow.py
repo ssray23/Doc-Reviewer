@@ -27,24 +27,38 @@ model = ChatOpenAI(api_key=api_key, temperature=0)
 
 def supervisor_node(state):
     """The supervisor node remains the same."""
-    response = model.invoke([
-        HumanMessage(
-            f"You are the supervisor. Please review the following document and provide your feedback.\n\nDocument:\n{state['document']}"
-        )
-    ])
+    prompt = (
+        f"You are the supervisor. Please review the following document and provide your feedback.\n\n"
+        f"IMPORTANT: Structure your feedback using the following format. Use bold headings, do NOT use bullet points or lists.\n\n"
+        f"**Overall Impression:**\n"
+        f"[Your general impression of the document.]\n\n"
+        f"**Specific Feedback:**\n"
+        f"[Provide specific points of feedback here.]\n\n"
+        f"--- DOCUMENT FOR REVIEW ---\n"
+        f"{state['document']}"
+    )
+    response = model.invoke([HumanMessage(prompt)])
     return {"supervisor_feedback": response.content}
 
 def create_reviewer_node(persona_key: str, persona_config: dict):
     """Function factory to create a reviewer node for a specific persona."""
     def reviewer_node(state):
-        response = model.invoke([
-            HumanMessage(
-                f"{persona_config['prompt']}\n\nPlease review the following document and provide your feedback.\n\nDocument:\n{state['document']}"
-            )
-        ])
+        prompt = (
+            f"{persona_config['prompt']}\n\n"
+            f"Please review the following document and provide your feedback.\n\n"
+            f"IMPORTANT: Structure your feedback using the following format. Use bold headings, do NOT use bullet points or lists.\n\n"
+            f"**Key Strengths:**\n"
+            f"[Summarize the positive aspects and strengths of the document here.]\n\n"
+            f"**Areas for Improvement:**\n"
+            f"[Summarize the constructive criticism and areas that need improvement here.]\n\n"
+            f"--- DOCUMENT FOR REVIEW ---\n"
+            f"{state['document']}"
+        )
+        response = model.invoke([HumanMessage(prompt)])
         # Return feedback in a dictionary with the persona key
         return {"reviews": {persona_config['name']: response.content}}
     return reviewer_node
+
 
 def aggregator_node(state):
     """Aggregates all the feedback."""
