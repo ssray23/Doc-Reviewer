@@ -1,6 +1,7 @@
 import os
 import json
 import markdown
+import re
 from flask import Flask, render_template, request, redirect, url_for
 from dotenv import load_dotenv
 from review_workflow import create_workflow
@@ -76,6 +77,56 @@ def index():
     """Renders the main page with the form."""
     return render_template('index.html', personas=load_personas())
 
+def format_feedback(text):
+    """Applies custom formatting and converts markdown to HTML."""
+    # Bold lines starting with --- and the word "Feedback:"
+    text = re.sub(r'^(---.*---)
+
+    return render_template(
+        'results.html',
+        supervisor_feedback=supervisor_feedback,
+        reviews=reviews,
+        final_feedback=final_feedback
+    )
+
+@app.route('/personas')
+def manage_personas():
+    """Renders the page to manage personas."""
+    return render_template('manage_personas.html', personas=load_personas())
+
+@app.route('/personas', methods=['POST'])
+def update_personas():
+    """Handles updating the personas file."""
+    new_personas = {}
+    for key in request.form:
+        if key.startswith('name_'):
+            persona_id = key.split('name_')[1]
+            name = request.form[key]
+            prompt = request.form.get(f'prompt_{persona_id}', '')
+            if name and prompt:
+                new_personas[persona_id] = {'name': name, 'prompt': prompt}
+
+    new_id = request.form.get('new_id')
+    new_name = request.form.get('new_name')
+    new_prompt = request.form.get('new_prompt')
+    if new_id and new_name and new_prompt:
+        new_personas[new_id.lower().replace(' ', '_')] = {'name': new_name, 'prompt': new_prompt}
+
+    save_personas(new_personas)
+    
+    # We need to recreate the workflow with the new personas
+    global review_app
+    review_app = create_workflow(new_personas)
+    
+    return redirect(url_for('manage_personas'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+, r'**\1**', text, flags=re.MULTILINE)
+    text = re.sub(r'^(Feedback:)', r'**\1**', text, flags=re.IGNORECASE | re.MULTILINE)
+    return markdown.markdown(text)
+
 @app.route('/review', methods=['POST'])
 def review():
     """Handles the form submission and displays the review results."""
@@ -111,15 +162,15 @@ def review():
     for event in review_app.stream(inputs):
         if "supervisor" in event:
             feedback = event["supervisor"].get("supervisor_feedback", "")
-            supervisor_feedback = markdown.markdown(feedback)
+            supervisor_feedback = format_feedback(feedback)
         for key in selected_reviewers:
             if key in event:
                 raw_reviews = event[key].get("reviews", {})
-                processed_reviews = {name: markdown.markdown(text) for name, text in raw_reviews.items()}
+                processed_reviews = {name: format_feedback(text) for name, text in raw_reviews.items()}
                 reviews.update(processed_reviews)
         if "aggregator" in event:
             feedback = event["aggregator"].get("final_feedback", "")
-            final_feedback = markdown.markdown(feedback)
+            final_feedback = format_feedback(feedback)
 
     return render_template(
         'results.html',

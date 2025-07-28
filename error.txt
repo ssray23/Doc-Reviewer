@@ -1,20 +1,11 @@
-Traceback (most recent call last):
-  File "C:\Users\su.ray\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0\LocalCache\local-packages\Python39\site-packages\flask\app.py", line 1536, in __call__   
-    return self.wsgi_app(environ, start_response)
-  File "C:\Users\su.ray\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0\LocalCache\local-packages\Python39\site-packages\flask\app.py", line 1514, in wsgi_app   
-    response = self.handle_exception(e)
-  File "C:\Users\su.ray\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0\LocalCache\local-packages\Python39\site-packages\flask\app.py", line 1511, in wsgi_app   
-    response = self.full_dispatch_request()
-  File "C:\Users\su.ray\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0\LocalCache\local-packages\Python39\site-packages\flask\app.py", line 919, in full_dispatch_request
-    rv = self.handle_user_exception(e)
-  File "C:\Users\su.ray\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0\LocalCache\local-packages\Python39\site-packages\flask\app.py", line 917, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "C:\Users\su.ray\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0\LocalCache\local-packages\Python39\site-packages\flask\app.py", line 902, in dispatch_request
-    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "c:\Users\su.ray\OneDrive - Reply\Suddha\Personal Projects\doc-reviewer\app.py", line 114, in review
-    supervisor_feedback = markdown.markdown(feedback)
-NameError: name 're' is not defined
-127.0.0.1 - - [28/Jul/2025 08:29:01] "GET /review?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 304 -
-127.0.0.1 - - [28/Jul/2025 08:29:01] "GET /review?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 304 -
-127.0.0.1 - - [28/Jul/2025 08:29:01] "GET /review?__debugger__=yes&cmd=resource&f=console.png&s=MURWeNed1FKWwWNs7kVz HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jul/2025 08:29:01] "GET /review?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 304 -
+ A full log can be found at /tmp/pip-install-wrfvnqqc/scipy_9508447ea7d2494688f4ca9f0ac08054/.mesonpy-0afilftz/meson-logs/meson-log.txt
+      [end of output]
+  
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+error: metadata-generation-failed
+× Encountered error while generating package metadata.
+╰─> See above for output.
+note: This is an issue with the package mentioned above, not pip.
+hint: See above for details.
+==> Build failed 😞
+==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys

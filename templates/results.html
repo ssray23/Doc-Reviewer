@@ -62,16 +62,5 @@
             <a href="/personas">Manage Personas</a>
         </div>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const feedbackElements = document.querySelectorAll('.feedback-content');
-            feedbackElements.forEach(element => {
-                // Regex to find lines starting with --- or the word "Feedback:"
-                // and wrap them in <strong> tags.
-                element.innerHTML = element.innerHTML.replace(/^(---.*---)$/gm, '<strong>$1</strong>');
-                element.innerHTML = element.innerHTML.replace(/^(Feedback:)/gmi, '<strong>$1</strong>');
-            });
-        });
-    </script>
 </body>
 </html>
