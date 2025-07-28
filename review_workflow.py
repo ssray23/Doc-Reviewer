@@ -56,7 +56,15 @@ def aggregator_node(state):
     combined_reviews = "\n\n".join(review_texts)
 
     prompt = (
-        f"You are the aggregator. Please compile a single, final feedback report. Synthesize the key points from the supervisor's feedback and the individual reviews provided below. Do not simply list the feedback; create a cohesive summary.\n\n"
+        f"You are the aggregator. Compile a single, final feedback report by synthesizing the key points from the supervisor's feedback and the individual reviews provided below.\n\n"
+        f"IMPORTANT: Structure your report using the following format. Use bold headings, do NOT use bullet points or lists.\n\n"
+        f"**Key Strengths:**\n"
+        f"[Summarize the positive aspects and strengths of the document here.]\n\n"
+        f"**Areas for Improvement:**\n"
+        f"[Summarize the constructive criticism and areas that need improvement here.]\n\n"
+        f"**Final Recommendation:**\n"
+        f"[Provide a final recommendation, e.g., 'Approved', 'Approved with minor revisions', 'Requires major revisions'.]\n\n"
+        f"--- FEEDBACK TO PROCESS ---\n"
         f"Supervisor's Feedback:\n{supervisor_feedback}\n\n"
         f"Individual Reviews:\n{combined_reviews}"
     )
