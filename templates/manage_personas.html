@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Reviewer Personas</title>
+    <style>
+        body { font-family: Helvetica, Arial, sans-serif; margin: 2em; background-color: #f4f4f9; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 2em; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1, h2 { text-align: center; color: #4a4a4a; }
+        .persona-card { background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 1.5em; margin-bottom: 1.5em; }
+        label { display: block; margin-bottom: 0.5em; font-weight: bold; }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-bottom: 1em;
+            box-sizing: border-box;
+        }
+        textarea { min-height: 100px; }
+        .actions { text-align: right; }
+        input[type="submit"] {
+            padding: 12px 25px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 1.1em;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: bold;
+        }
+        input[type="submit"]:hover { background-color: #218838; }
+        .new-persona { border-top: 2px solid #007bff; padding-top: 2em; margin-top: 2em; }
+        .nav-link { display: block; text-align: center; margin-top: 2em; }
+        a { color: #007bff; text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Manage Personas</h1>
+        <form action="/personas" method="post">
+            <h2>Existing Personas</h2>
+            {% for key, value in personas.items() %}
+            <div class="persona-card">
+                <label for="name_{{ key }}">Persona Name (ID: {{ key }})</label>
+                <input type="text" id="name_{{ key }}" name="name_{{ key }}" value="{{ value.name }}">
+
+                <label for="prompt_{{ key }}">Persona Prompt</label>
+                <textarea id="prompt_{{ key }}" name="prompt_{{ key }}">{{ value.prompt }}</textarea>
+            </div>
+            {% endfor %}
+
+            <div class="new-persona">
+                <h2>Add New Persona</h2>
+                <div class="persona-card">
+                    <label for="new_id">New Persona ID (e.g., 'legal_expert')</label>
+                    <input type="text" id="new_id" name="new_id" placeholder="A unique identifier, use underscores for spaces">
+
+                    <label for="new_name">New Persona Name</label>
+                    <input type="text" id="new_name" name="new_name" placeholder="e.g., Legal Expert">
+
+                    <label for="new_prompt">New Persona Prompt</label>
+                    <textarea id="new_prompt" name="new_prompt" placeholder="Describe the new persona's behavior..."></textarea>
+                </div>
+            </div>
+
+            <div class="actions">
+                <input type="submit" value="Save All Changes">
+            </div>
+        </form>
+        <div class="nav-link">
+            <a href="/">Back to Document Review</a>
+        </div>
+    </div>
+</body>
+</html>

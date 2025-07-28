@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solution Design Review</title>
+    <style>
+        body { font-family: Helvetica, Arial, sans-serif; margin: 2em; background-color: #f4f4f9; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 2em; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); position: relative; }
+        h1 { text-align: center; color: #4a4a4a; }
+        textarea { width: 100%; min-height: 100px; padding: 10px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 1em; box-sizing: border-box; }
+        .personas-container { margin-bottom: 1.5em; }
+        .personas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1em; }
+        .persona-option { background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 6px; padding: 1em; display: flex; align-items: center; gap: 0.8em; cursor: pointer; }
+        .persona-option:hover { background-color: #f0f0f0; }
+        .persona-option input[type="checkbox"] { width: 1.2em; height: 1.2em; }
+        label { font-weight: bold; }
+        .form-label { display: block; margin-bottom: 0.5em; font-weight: bold; }
+        
+        /* Main submit button */
+        input[type="submit"] {
+            width: 100%; padding: 15px; border: none; background-color: #007bff; color: white;
+            font-family: Helvetica, Arial, sans-serif; /* Ensure font */
+            font-size: 1.2em; border-radius: 4px; cursor: pointer; transition: background-color 0.3s;
+            font-weight: bold;
+        }
+        input[type="submit"]:hover { background-color: #0056b3; }
+        
+        .nav-link { text-align: center; margin-top: 2em; }
+        a { color: #007bff; text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; }
+        
+        .input-section {
+            border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5em;
+            margin-bottom: 1.5em; background-color: #fafafa;
+        }
+        .divider { text-align: center; margin: 1.5em 0; font-weight: bold; color: #888; }
+
+        /* Custom file upload button styles */
+        .file-upload-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
+        .file-upload-button {
+            border: 2px dashed #007bff; color: #007bff; background-color: #f0f8ff;
+            padding: 1.5em; border-radius: 8px; text-align: center; cursor: pointer;
+            font-size: 1.1em; font-weight: bold; transition: background-color 0.3s;
+        }
+        .file-upload-button:hover { background-color: #e6f2ff; }
+        .file-upload-wrapper input[type=file] {
+            position: absolute; left: 0; top: 0; opacity: 0;
+            width: 100%; height: 100%; cursor: pointer;
+        }
+        #file-name { margin-top: 10px; color: #555; font-style: italic; }
+
+        /* Loading overlay styles */
+        .loading-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 10; border-radius: 8px;
+        }
+        .spinner {
+            border: 8px solid #f3f3f3; border-top: 8px solid #007bff;
+            border-radius: 50%; width: 60px; height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading" class="loading-overlay" style="display: none;">
+            <div class="spinner"></div>
+        </div>
+        <h1>Solution Design Review</h1>
+        <form id="review-form" action="/review" method="post" enctype="multipart/form-data">
+            
+            <div class="input-section">
+                <label class="form-label">Upload Document</label>
+                <div class="file-upload-wrapper">
+                    <div class="file-upload-button">
+                        Click to Upload (PDF, DOCX, TXT, MD)
+                        <div id="file-name"></div>
+                    </div>
+                    <input type="file" id="document_file" name="document_file" accept=".pdf,.docx,.txt,.md">
+                </div>
+            </div>
+
+            <div class="divider">OR</div>
+
+            <div class="input-section">
+                <label for="document" class="form-label">Paste Document Content:</label>
+                <textarea id="document" name="document" placeholder="Paste your document here..."></textarea>
+            </div>
+
+            <div class="personas-container">
+                <label class="form-label">Select Reviewers (at least one):</label>
+                <div class="personas-grid">
+                    {% for key, value in personas.items() %}
+                    <label class="persona-option" for="persona_{{ key }}">
+                        <input type="checkbox" id="persona_{{ key }}" name="reviewers" value="{{ key }}">
+                        {{ value.name }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <input type="submit" value="Start Review">
+        </form>
+        <div class="nav-link">
+            <a href="/personas">Manage Personas</a>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('review-form');
+        const loadingOverlay = document.getElementById('loading');
+        const fileInput = document.getElementById('document_file');
+        const fileNameDisplay = document.getElementById('file-name');
+
+        fileInput.addEventListener('change', function() {
+            fileNameDisplay.textContent = this.files.length > 0 ? this.files[0].name : '';
+        });
+
+        form.addEventListener('submit', function(event) {
+            // Validation
+            const checked = document.querySelectorAll('input[name="reviewers"]:checked');
+            if (checked.length === 0) {
+                event.preventDefault();
+                alert('Please select at least one reviewer.');
+                return;
+            }
+
+            const textInput = document.getElementById('document');
+            if (fileInput.files.length === 0 && textInput.value.trim() === '') {
+                event.preventDefault();
+                alert('Please upload a file or paste document content.');
+                return;
+            }
+
+            // Show loading indicator
+            loadingOverlay.style.display = 'flex';
+        });
+    </script>
+</body>
+</html>
